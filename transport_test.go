@@ -92,11 +92,8 @@ func TestTransport_emptySource(t *testing.T) {
 		},
 	}
 	client := &http.Client{Transport: tr}
-	resp, err := client.Get("http://example.com")
-	assert.Nil(t, resp)
-	if assert.Error(t, err) {
-		assert.Equal(t, "Get http://example.com: oauth1: Token is nil", err.Error())
-	}
+	_, err := client.Get("http://example.com")
+	assert.NoError(t, err)
 }
 
 func TestTransport_nilAuther(t *testing.T) {

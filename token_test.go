@@ -25,7 +25,5 @@ func TestStaticTokenSourceEmpty(t *testing.T) {
 	ts := StaticTokenSource(nil)
 	tk, err := ts.Token()
 	assert.Nil(t, tk)
-	if assert.Error(t, err) {
-		assert.Equal(t, "oauth1: Token is nil", err.Error())
-	}
+	assert.Nil(t, err)
 }

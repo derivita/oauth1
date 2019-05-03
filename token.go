@@ -1,9 +1,5 @@
 package oauth1
 
-import (
-	"errors"
-)
-
 // A TokenSource can return a Token.
 type TokenSource interface {
 	Token() (*Token, error)
@@ -36,8 +32,5 @@ type staticTokenSource struct {
 }
 
 func (s staticTokenSource) Token() (*Token, error) {
-	if s.token == nil {
-		return nil, errors.New("oauth1: Token is nil")
-	}
 	return s.token, nil
 }
