@@ -170,6 +170,32 @@ func TestTwitterRequestAuthHeader(t *testing.T) {
 	assert.Equal(t, expectedVersion, params[oauthVersionParam])
 }
 
+func TestNilAuthToken(t *testing.T) {
+	expectedSignature := PercentEncode("+gxx4CGoDB7afZbRRRpR56orbKU=")
+	expectedTimestamp := "1318622958"
+
+	auther := &auther{twitterConfig, &fixedClock{time.Unix(unixTimestampOfRequest, 0)}, &fixedNoncer{expectedNonce}}
+	values := url.Values{}
+	values.Add("status", "Hello Ladies + Gentlemen, a signed OAuth request!")
+
+	var accessToken *Token
+	req, err := http.NewRequest("POST", "https://api.twitter.com/1/statuses/update.json?include_entities=true", strings.NewReader(values.Encode()))
+	assert.Nil(t, err)
+	req.Header.Set(contentType, formContentType)
+	err = auther.setRequestAuthHeader(req, accessToken)
+	// assert that request is signed and has an access token token
+	assert.Nil(t, err)
+	params := parseOAuthParamsOrFail(t, req.Header.Get(authorizationHeaderParam))
+	assert.NotContains(t, params, oauthTokenParam)
+	assert.Equal(t, expectedSignature, params[oauthSignatureParam])
+	// additional OAuth parameters
+	assert.Equal(t, expectedTwitterConsumerKey, params[oauthConsumerKeyParam])
+	assert.Equal(t, expectedNonce, params[oauthNonceParam])
+	assert.Equal(t, expectedSignatureMethod, params[oauthSignatureMethodParam])
+	assert.Equal(t, expectedTimestamp, params[oauthTimestampParam])
+	assert.Equal(t, expectedVersion, params[oauthVersionParam])
+}
+
 func parseOAuthParamsOrFail(t *testing.T, authHeader string) map[string]string {
 	if !strings.HasPrefix(authHeader, authorizationPrefix) {
 		assert.Fail(t, fmt.Sprintf("Expected Authorization header to start with \"%s\", got \"%s\"", authorizationPrefix, authHeader[:len(authorizationPrefix)+1]))
