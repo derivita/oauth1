@@ -216,20 +216,30 @@ func collectParameters(req *http.Request, oauthParams map[string]string) (map[st
 		// most backends do not accept duplicate query keys
 		params[key] = value[0]
 	}
-	if req.Body != nil && req.Header.Get(contentType) == formContentType {
+	if req.Body != nil {
 		// reads data to a []byte, draining req.Body
 		b, err := ioutil.ReadAll(req.Body)
 		if err != nil {
 			return nil, err
 		}
-		values, err := url.ParseQuery(string(b))
-		if err != nil {
-			return nil, err
+
+		if req.Header.Get(contentType) == formContentType {
+			values, err := url.ParseQuery(string(b))
+			if err != nil {
+				return nil, err
+			}
+			for key, value := range values {
+				// not supporting params with duplicate keys
+				params[key] = value[0]
+			}
+		} else {
+			// providing body hash for requests other than x-www-form-urlencoded
+			// as described in https://tools.ietf.org/html/draft-eaton-oauth-bodyhash-00#section-4.1.1
+			hash := sha1.Sum(b)
+			hash64 := base64.StdEncoding.EncodeToString(hash[:])
+			params[oauthBodyHash] = hash64
 		}
-		for key, value := range values {
-			// not supporting params with duplicate keys
-			params[key] = value[0]
-		}
+
 		// reinitialize Body with ReadCloser over the []byte
 		req.Body = ioutil.NopCloser(bytes.NewReader(b))
 	}

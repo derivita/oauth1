@@ -203,6 +203,38 @@ func TestCollectParameters(t *testing.T) {
 	// http://golang.org/src/net/http/request.go#L837
 }
 
+func TestCollectParametersNonWwwFormUrlencoded(t *testing.T) {
+	oauthParams := map[string]string{
+		"oauth_token":            "kkk9d7dh3k39sjv7",
+		"oauth_consumer_key":     "9djdj82h48djs9d2",
+		"oauth_signature_method": "HMAC-SHA1",
+		"oauth_timestamp":        "137131201",
+		"oauth_nonce":            "7d8f3e4a",
+		"realm":                  "photos",
+	}
+	jsonBody := "{ \"test\": \"foobar\" }"
+	req, err := http.NewRequest("POST", "/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b", strings.NewReader(jsonBody))
+	assert.Nil(t, err)
+	req.Header.Set(contentType, "application/json")
+	params, err := collectParameters(req, oauthParams)
+	// assert parameters were collected from oauthParams, the query, and form body
+	// excluding the realm parameter
+	expected := map[string]string{
+		"b5":                     "=%3D",
+		"a3":                     "a",
+		"c@":                     "",
+		"a2":                     "r b",
+		"oauth_token":            "kkk9d7dh3k39sjv7",
+		"oauth_consumer_key":     "9djdj82h48djs9d2",
+		"oauth_signature_method": "HMAC-SHA1",
+		"oauth_timestamp":        "137131201",
+		"oauth_nonce":            "7d8f3e4a",
+		"oauth_body_hash":        "MFIr5skk2mB20S82rxAYkx9ql/A=",
+	}
+	assert.Nil(t, err)
+	assert.Equal(t, expected, params)
+}
+
 func TestSignatureBase(t *testing.T) {
 	reqA, err := http.NewRequest("get", "HTTPS://HELLO.IO?q=test", nil)
 	assert.Nil(t, err)
