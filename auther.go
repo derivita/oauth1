@@ -3,6 +3,7 @@ package oauth1
 import (
 	"bytes"
 	"crypto/rand"
+	"crypto/sha1"
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
@@ -17,6 +18,7 @@ import (
 const (
 	authorizationHeaderParam  = "Authorization"
 	authorizationPrefix       = "OAuth " // trailing space is intentional
+	oauthBodyHash             = "oauth_body_hash"
 	oauthConsumerKeyParam     = "oauth_consumer_key"
 	oauthNonceParam           = "oauth_nonce"
 	oauthSignatureParam       = "oauth_signature"
