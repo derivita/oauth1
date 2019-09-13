@@ -62,11 +62,17 @@ func newAuther(config *Config) *auther {
 // request (temporary credential) according to RFC 5849 2.1.
 func (a *auther) setRequestTokenAuthHeader(req *http.Request) error {
 	oauthParams := a.commonOAuthParams()
-	oauthParams[oauthCallbackParam] = a.config.CallbackURL
+
 	params, err := collectParameters(req, oauthParams)
 	if err != nil {
 		return err
 	}
+
+	oauthParams[oauthCallbackParam] = a.config.CallbackURL
+	if bodyHash, ok := params[oauthBodyHash]; ok {
+		oauthParams[oauthBodyHash] = bodyHash
+	}
+
 	signatureBase := signatureBase(req, params)
 	signature, err := a.signer().Sign("", signatureBase)
 	if err != nil {
@@ -84,17 +90,24 @@ func (a *auther) setRequestTokenAuthHeader(req *http.Request) error {
 // (token credential) according to RFC 5849 2.3.
 func (a *auther) setAccessTokenAuthHeader(req *http.Request, requestToken, requestSecret, verifier string) error {
 	oauthParams := a.commonOAuthParams()
-	oauthParams[oauthTokenParam] = requestToken
-	oauthParams[oauthVerifierParam] = verifier
+
 	params, err := collectParameters(req, oauthParams)
 	if err != nil {
 		return err
 	}
+
+	oauthParams[oauthTokenParam] = requestToken
+	oauthParams[oauthVerifierParam] = verifier
+	if bodyHash, ok := params[oauthBodyHash]; ok {
+		oauthParams[oauthBodyHash] = bodyHash
+	}
+
 	signatureBase := signatureBase(req, params)
 	signature, err := a.signer().Sign(requestSecret, signatureBase)
 	if err != nil {
 		return err
 	}
+
 	oauthParams[oauthSignatureParam] = signature
 	req.Header.Set(authorizationHeaderParam, authHeaderValue(oauthParams))
 	return nil
@@ -104,21 +117,29 @@ func (a *auther) setAccessTokenAuthHeader(req *http.Request, requestToken, reque
 // requests with an AccessToken (token credential) according to RFC 5849 3.1.
 func (a *auther) setRequestAuthHeader(req *http.Request, accessToken *Token) error {
 	oauthParams := a.commonOAuthParams()
+
 	var tokenSecret string
 	if accessToken != nil {
 		oauthParams[oauthTokenParam] = accessToken.Token
 		tokenSecret = accessToken.TokenSecret
 	}
+
 	params, err := collectParameters(req, oauthParams)
 	if err != nil {
 		return err
 	}
+
 	signatureBase := signatureBase(req, params)
 	signature, err := a.signer().Sign(tokenSecret, signatureBase)
 	if err != nil {
 		return err
 	}
+
 	oauthParams[oauthSignatureParam] = signature
+	if bodyHash, ok := params[oauthBodyHash]; ok {
+		oauthParams[oauthBodyHash] = bodyHash
+	}
+
 	req.Header.Set(authorizationHeaderParam, authHeaderValue(oauthParams))
 	return nil
 }
