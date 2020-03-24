@@ -250,7 +250,7 @@ func TestSignatureBase(t *testing.T) {
 	}
 	// assert that method is uppercased, base uri rules applied, queries added, joined by &
 	for _, c := range cases {
-		base := signatureBase(c.req, c.params)
+		base := SignatureBase(c.req, c.params)
 		assert.Equal(t, c.signatureBase, base)
 	}
 }
