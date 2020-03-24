@@ -122,7 +122,7 @@ func (r providerRequest) checkSignature(signer Signer) error {
 	if signer == nil {
 		return errSignatureMismatch
 	}
-	base := signatureBase(r.req, r.oauthParams)
+	base := SignatureBase(r.req, r.oauthParams)
 	signature, err := signer.Sign("", base)
 	if err != nil {
 		return err

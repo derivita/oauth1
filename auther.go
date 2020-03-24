@@ -73,7 +73,7 @@ func (a *auther) setRequestTokenAuthHeader(req *http.Request) error {
 		oauthParams[oauthBodyHash] = bodyHash
 	}
 
-	signatureBase := signatureBase(req, params)
+	signatureBase := SignatureBase(req, params)
 	signature, err := a.signer().Sign("", signatureBase)
 	if err != nil {
 		return err
@@ -102,7 +102,7 @@ func (a *auther) setAccessTokenAuthHeader(req *http.Request, requestToken, reque
 		oauthParams[oauthBodyHash] = bodyHash
 	}
 
-	signatureBase := signatureBase(req, params)
+	signatureBase := SignatureBase(req, params)
 	signature, err := a.signer().Sign(requestSecret, signatureBase)
 	if err != nil {
 		return err
@@ -129,7 +129,7 @@ func (a *auther) setRequestAuthHeader(req *http.Request, accessToken *Token) err
 		return err
 	}
 
-	signatureBase := signatureBase(req, params)
+	signatureBase := SignatureBase(req, params)
 	signature, err := a.signer().Sign(tokenSecret, signatureBase)
 	if err != nil {
 		return err
