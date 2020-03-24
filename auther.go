@@ -275,10 +275,10 @@ func collectParameters(req *http.Request, oauthParams map[string]string) (map[st
 	return params, nil
 }
 
-// signatureBase combines the uppercase request method, percent encoded base
+// SignatureBase combines the uppercase request method, percent encoded base
 // string URI, and normalizes the request parameters int a parameter string.
 // Returns the OAuth1 signature base string according to RFC5849 3.4.1.
-func signatureBase(req *http.Request, params map[string]string) string {
+func SignatureBase(req *http.Request, params map[string]string) string {
 	method := strings.ToUpper(req.Method)
 	baseURL := baseURI(req)
 	parameterString := normalizedParameterString(params)
