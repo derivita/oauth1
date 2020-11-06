@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 const (
@@ -170,4 +171,22 @@ func (c *Config) AccessToken(requestToken, requestSecret, verifier string) (acce
 		return "", "", errors.New("oauth1: Response missing oauth_token or oauth_token_secret")
 	}
 	return accessToken, accessSecret, nil
+}
+
+// SignForm adds the oauth params and signature to data.
+func (c *Config) SignForm(method, url string, data url.Values, accessToken *Token) error {
+	a := newAuther(c)
+	req, err := http.NewRequest(method, url, strings.NewReader(data.Encode()))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", formContentType)
+	oauthParams, err := a.buildOauthParams(req, accessToken)
+	if err != nil {
+		return err
+	}
+	for key, value := range oauthParams {
+		data.Set(key, value)
+	}
+	return nil
 }
